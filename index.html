@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cistercian Numerals — The Medieval Compression System</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400;1,600&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { font-size: 16px; scroll-behavior: smooth; }
+
+    :root {
+      --bg:     #0d0a07;
+      --bg2:    #161108;
+      --bg3:    #1e1810;
+      --gold:   #c89b3c;
+      --gold-l: #e8c46a;
+      --gold-d: #7a5e22;
+      --text:   #dfd2b5;
+      --text2:  #8c7e68;
+      --text3:  #4e4538;
+      --border: rgba(200,155,60,0.18);
+      --fd: 'Cormorant Garamond', Georgia, serif;
+      --fb: 'Crimson Pro', Georgia, serif;
+      --rad: 8px;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--fb);
+      font-size: 1.15rem;
+      line-height: 1.75;
+      overflow-x: hidden;
+    }
+
+    h1, h2, h3, h4 { font-family: var(--fd); font-weight: 400; line-height: 1.15; }
+    h1 { font-size: clamp(2.4rem, 5.5vw, 4.8rem); }
+    h2 { font-size: clamp(1.7rem, 3.5vw, 2.8rem); margin-bottom: 0.75rem; }
+    h3 { font-size: clamp(1.1rem, 2vw, 1.6rem); }
+    p  { margin-bottom: 1.1rem; }
+    em { font-style: italic; }
+    strong { font-weight: 600; }
+
+    .container { max-width: 1080px; margin: 0 auto; padding: 0 2rem; }
+    .section    { padding: 88px 0; }
+    .section--alt { background: var(--bg2); }
+
+    /* ── Navigation ── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 2.5rem;
+      background: rgba(13,10,7,0.88);
+      backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-logo {
+      font-family: var(--fd); font-size: 1.1rem; font-weight: 400;
+      color: var(--gold); letter-spacing: 0.05em; text-decoration: none;
+    }
+    .nav-links { display: flex; gap: 2rem; }
+    .nav-links a {
+      color: var(--text2); text-decoration: none; font-size: 0.78rem;
+      letter-spacing: 0.1em; text-transform: uppercase; transition: color 0.2s;
+    }
+    .nav-links a:hover { color: var(--gold); }
+
+    /* ── Hero ── */
+    #hero {
+      min-height: 100vh;
+      display: flex; align-items: center;
+      padding: 120px 0 80px;
+      position: relative;
+    }
+    #hero::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse 55% 65% at 72% 50%, rgba(200,155,60,0.07) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 5rem;
+      align-items: center;
+    }
+    .hero-eyebrow {
+      font-size: 0.78rem; text-transform: uppercase;
+      letter-spacing: 0.18em; color: var(--gold);
+      margin-bottom: 1.4rem; display: block;
+    }
+    .hero-title { color: var(--text); }
+    .hero-title em { color: var(--gold-l); }
+    .hero-sub {
+      margin-top: 1.5rem; font-size: 1.1rem;
+      color: var(--text2); max-width: 500px;
+    }
+    .hero-cta {
+      display: inline-block; margin-top: 2rem;
+      border: 1px solid var(--border);
+      color: var(--gold); text-decoration: none;
+      font-size: 0.78rem; letter-spacing: 0.12em; text-transform: uppercase;
+      padding: 10px 24px; border-radius: 2px;
+      transition: background 0.2s, border-color 0.2s;
+    }
+    .hero-cta:hover { background: rgba(200,155,60,0.08); border-color: var(--gold); }
+
+    .hero-glyph {
+      display: flex; flex-direction: column; align-items: center; gap: 1rem;
+    }
+    #hero-canvas { width: 200px; height: 270px; border-radius: 12px; display: block; }
+    .hero-glyph-label {
+      font-family: var(--fd); font-size: 2rem; color: var(--gold);
+      min-width: 80px; text-align: center;
+    }
+    .hero-glyph-sub { font-size: 0.75rem; color: var(--text3); letter-spacing: 0.1em; text-transform: uppercase; }
+
+    .scroll-hint {
+      position: absolute; bottom: 2.5rem; left: 50%; transform: translateX(-50%);
+      display: flex; flex-direction: column; align-items: center; gap: 8px;
+      color: var(--text3); font-size: 0.7rem; letter-spacing: 0.15em; text-transform: uppercase;
+      animation: pulse 2.5s ease-in-out infinite;
+    }
+    .scroll-line { width: 1px; height: 44px; background: linear-gradient(to bottom, transparent, var(--gold-d)); }
+    @keyframes pulse { 0%,100% { opacity: 0.5; } 50% { opacity: 1; } }
+
+    /* ── Section label ── */
+    .section-label {
+      display: block; font-size: 0.75rem; text-transform: uppercase;
+      letter-spacing: 0.18em; color: var(--gold); margin-bottom: 1rem;
+    }
+
+    /* ── Two-col layout ── */
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: start; }
+    .two-col--center { align-items: center; }
+
+    /* ── Stats ── */
+    .stats-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 1px; background: var(--border);
+      border: 1px solid var(--border); border-radius: var(--rad);
+      overflow: hidden; margin-bottom: 1.5rem;
+    }
+    .stat { background: var(--bg); padding: 1.4rem 1.2rem; text-align: center; }
+    .stat-n { font-family: var(--fd); font-size: 2.2rem; font-weight: 300; color: var(--gold); display: block; line-height: 1; }
+    .stat-l { font-size: 0.8rem; color: var(--text2); margin-top: 0.4rem; display: block; }
+
+    /* ── Pull quote ── */
+    .pullquote {
+      border-left: 2px solid var(--gold);
+      padding: 0.8rem 1.5rem;
+      font-family: var(--fd); font-size: 1.3rem; font-style: italic;
+      color: var(--gold-l); margin: 1.8rem 0;
+    }
+
+    /* ── Comparison table ── */
+    .compare-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
+    thead th {
+      font-family: var(--fd); font-weight: 400; font-size: 0.72rem;
+      text-transform: uppercase; letter-spacing: 0.14em; color: var(--text2);
+      padding: 0.7rem 1rem; border-bottom: 1px solid var(--border);
+      text-align: left;
+    }
+    tbody td {
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid rgba(200,155,60,0.07);
+      vertical-align: middle;
+    }
+    .td-num  { color: var(--text); font-family: var(--fd); font-size: 1.1rem; }
+    .td-rom  { color: var(--text2); font-family: monospace; font-size: 0.88rem; }
+    .td-cist { text-align: center; }
+    .td-len  { color: var(--text3); font-size: 0.78rem; margin-left: 4px; }
+
+    /* ── Info box ── */
+    .info-box {
+      background: var(--bg3); border: 1px solid var(--border);
+      border-radius: var(--rad); padding: 1.4rem 1.6rem; margin: 1.5rem 0;
+    }
+    .info-box h4 { color: var(--gold); margin-bottom: 0.5rem; font-size: 1rem; }
+    .info-box p { margin-bottom: 0; font-size: 0.9rem; color: var(--text2); }
+
+    /* ── Builder ── */
+    .builder { display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; align-items: start; }
+
+    .quadrant-diagram {
+      display: grid; grid-template-columns: 1fr 1fr;
+      border: 1px solid var(--border); border-radius: var(--rad);
+      overflow: hidden; width: 100%; max-width: 340px; margin-bottom: 1.8rem;
+    }
+    .ql {
+      padding: 11px 10px; font-size: 0.72rem; text-transform: uppercase;
+      letter-spacing: 0.1em; text-align: center; color: var(--text3);
+      border: 0.5px solid var(--border); transition: background 0.2s, color 0.2s;
+    }
+    .ql.active { background: rgba(200,155,60,0.14); color: var(--gold); }
+
+    .digit-controls { display: flex; flex-direction: column; gap: 1.1rem; }
+    .digit-row { display: grid; grid-template-columns: 88px 1fr 44px; gap: 1rem; align-items: center; }
+    .d-label { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text2); }
+    .d-val   { font-family: var(--fd); font-size: 1.4rem; color: var(--gold); text-align: right; }
+    input[type=range] {
+      -webkit-appearance: none; width: 100%; height: 2px;
+      background: var(--bg3); outline: none; cursor: pointer; border-radius: 1px;
+    }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none; width: 14px; height: 14px;
+      border-radius: 50%; background: var(--gold); cursor: pointer;
+    }
+
+    .builder-preview { display: flex; flex-direction: column; align-items: center; gap: 1rem; position: sticky; top: 100px; }
+    #builder-canvas  { width: 190px; height: 250px; border-radius: 12px; display: block; border: 1px solid var(--border); }
+    .builder-num { font-family: var(--fd); font-size: 3rem; color: var(--gold); }
+    .builder-hint { font-size: 0.78rem; color: var(--text3); text-align: center; }
+
+    /* ── Clock ── */
+    .clock-wrap { display: flex; align-items: center; justify-content: center; gap: 2rem; flex-wrap: wrap; }
+    .clock-unit { display: flex; flex-direction: column; align-items: center; gap: 0.7rem; }
+    .clock-canvas { width: 150px; height: 200px; border-radius: 12px; display: block; }
+    .clock-num { font-family: var(--fd); font-size: 1.4rem; color: var(--gold); }
+    .clock-sub { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--text3); }
+    .clock-sep { font-family: var(--fd); font-size: 3.5rem; color: var(--text3); margin-bottom: 1.5rem; }
+    .clock-vr  { width: 1px; height: 140px; background: var(--border); align-self: center; margin: 0 0.5rem; }
+
+    /* ── Explorer ── */
+    .explorer { display: grid; grid-template-columns: 1fr 220px; gap: 3rem; align-items: start; }
+    .exp-sticky { position: sticky; top: 100px; text-align: center; }
+    #explorer-canvas { width: 180px; height: 240px; border-radius: 12px; display: block; margin: 0 auto; }
+    .exp-num { font-family: var(--fd); font-size: 2.4rem; color: var(--gold); margin-top: 0.8rem; }
+    .exp-hint { font-size: 0.78rem; color: var(--text3); margin-top: 0.4rem; }
+
+    .exp-input-row { display: flex; align-items: center; gap: 1rem; margin-bottom: 2rem; }
+    .big-input {
+      font-family: var(--fd); font-size: 2rem;
+      background: var(--bg2); border: 1px solid var(--border);
+      color: var(--text); padding: 6px 14px;
+      border-radius: var(--rad); width: 170px; text-align: center; outline: none;
+      transition: border-color 0.2s;
+    }
+    .big-input:focus { border-color: var(--gold); }
+    .exp-label { font-size: 0.9rem; color: var(--text2); }
+
+    /* ── Reference grid ── */
+    #ref-grid { margin-top: 0; }
+
+    /* ── Divider ── */
+    hr { border: none; border-top: 1px solid var(--border); margin: 2.5rem 0; }
+
+    /* ── Footer ── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 3rem 0; text-align: center;
+      color: var(--text3); font-size: 0.88rem;
+    }
+    footer a { color: var(--text2); text-decoration: none; }
+    footer a:hover { color: var(--gold); }
+
+    /* ── Responsive ── */
+    @media (max-width: 800px) {
+      .hero-grid, .two-col, .builder, .explorer { grid-template-columns: 1fr; gap: 2.5rem; }
+      .hero-glyph { order: -1; }
+      .stats-grid { grid-template-columns: 1fr; }
+      .nav-links  { display: none; }
+      #hero-canvas { width: 160px; height: 220px; }
+      .clock-canvas { width: 120px; height: 160px; }
+      .clock-vr { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ─── NAV ─────────────────────────────────────────────────────────────── -->
+<nav>
+  <a class="nav-logo" href="#hero">✦ Cistercian Numerals</a>
+  <div class="nav-links">
+    <a href="#history">History</a>
+    <a href="#compression">Compression</a>
+    <a href="#howto">How it works</a>
+    <a href="#clock">Live clock</a>
+    <a href="#explorer">Explorer</a>
+  </div>
+</nav>
+
+<!-- ─── HERO ─────────────────────────────────────────────────────────────── -->
+<section id="hero">
+  <div class="container">
+    <div class="hero-grid">
+      <div>
+        <span class="hero-eyebrow">13th – 15th Century · Medieval Europe</span>
+        <h1 class="hero-title">
+          One symbol.<br>
+          <em>Nine thousand,<br>nine hundred and<br>ninety-nine</em> possibilities.
+        </h1>
+        <p class="hero-sub">
+          Medieval Cistercian monks invented a numeral system so spatially efficient that a single glyph encodes any number from 0 to 9,999 — a compression feat Roman numerals could never match.
+        </p>
+        <a href="#howto" class="hero-cta">Learn the system →</a>
+      </div>
+      <div class="hero-glyph">
+        <canvas id="hero-canvas"></canvas>
+        <div class="hero-glyph-label" id="hero-label">–</div>
+        <div class="hero-glyph-sub">Cistercian notation</div>
+      </div>
+    </div>
+  </div>
+  <div class="scroll-hint">
+    <span>Scroll</span>
+    <div class="scroll-line"></div>
+  </div>
+</section>
+
+<!-- ─── HISTORY ──────────────────────────────────────────────────────────── -->
+<section id="history" class="section section--alt">
+  <div class="container">
+    <span class="section-label">The Cistercians</span>
+    <div class="two-col two-col--center">
+      <div>
+        <h2>Silence demands efficiency</h2>
+        <p>
+          In 1098, a group of Benedictine monks broke away to found a stricter order in Cîteaux, Burgundy. They called themselves Cistercians — and they were serious about asceticism. Speaking was forbidden for most of the day. Manual labour was a form of worship.
+        </p>
+        <p>
+          By the 13th century, they had grown into the most influential religious order in Europe, with over 500 monasteries spanning from the British Isles to Poland, from Scandinavia to Portugal. Running this network meant managing dates, inventories, page numbers, and financial records — all without speech.
+        </p>
+        <p>
+          They developed one of the earliest formal sign languages, still partially remembered by some monks today. And alongside it, they devised a written number system of extraordinary elegance: one glyph per number, up to 9,999.
+        </p>
+        <div class="pullquote">
+          "One written mark, and the recipient knows the exact page, year, or quantity — no speech required."
+        </div>
+        <p style="color:var(--text2); font-size:0.92rem;">
+          The system was largely forgotten until historian <strong style="color:var(--text);">David A. King</strong> documented it exhaustively in his 2001 monograph <em>The Ciphers of the Monks</em>, after finding it preserved in authentic medieval manuscripts across Europe. After the Cistercians, it was adopted by other groups for use as a cipher — a secret notation for anyone who knew the key.
+        </p>
+      </div>
+      <div>
+        <div class="stats-grid">
+          <div class="stat">
+            <span class="stat-n">500+</span>
+            <span class="stat-l">Cistercian monasteries across Europe by the 13th century</span>
+          </div>
+          <div class="stat">
+            <span class="stat-n">9,999</span>
+            <span class="stat-l">Maximum value in a single Cistercian glyph</span>
+          </div>
+          <div class="stat">
+            <span class="stat-n">~200 yrs</span>
+            <span class="stat-l">Of active use as a primary numeral system</span>
+          </div>
+        </div>
+        <div class="info-box">
+          <h4>Why not just use Roman numerals?</h4>
+          <p>
+            Roman numerals were the default in medieval Europe — but they scale poorly. Writing 3,888 requires 15 characters: MMMDCCCLXXXVIII. For a monk copying manuscripts or labelling storage, every extra character is wasted effort. The Cistercian system always costs exactly one glyph, regardless of value.
+          </p>
+        </div>
+        <div class="info-box">
+          <h4>Other uses after the Cistercians</h4>
+          <p>
+            Once the Cistercians declined, the notation survived as a cipher system. Its unfamiliarity became a feature — a reader who didn't know the key couldn't read the number at all. Cryptographers used it in manuscripts, almanacs, and ecclesiastical records well into the Renaissance.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── COMPRESSION ───────────────────────────────────────────────────────── -->
+<section id="compression" class="section">
+  <div class="container">
+    <span class="section-label">Information density</span>
+    <h2>The medieval compression argument</h2>
+
+    <div class="two-col" style="margin-top:2.5rem; gap:3.5rem;">
+      <div>
+        <p>
+          Modern information theory measures efficiency in bits. Medieval monks measured it in the silence they were sworn to. The result is the same: the Cistercian system is strikingly efficient.
+        </p>
+        <p>
+          The key insight is that place value is encoded <em>spatially</em> — not through repetition or stacking, but through which quadrant of the glyph a stroke occupies. No matter how large the number, the glyph is always the same size. There is no visual scaling with magnitude.
+        </p>
+        <p>
+          From a formal perspective: a single Cistercian glyph encodes one of 10,000 possible values (0–9,999). That's approximately <strong style="color:var(--gold)">13.3 bits of information</strong> per symbol — comparable to two ASCII characters, but representing up to four decimal digits. Roman numerals for the same range can require 15 characters.
+        </p>
+        <div class="info-box">
+          <h4>Spatial encoding vs. sequential encoding</h4>
+          <p>
+            Roman numerals are sequential — you read left to right and accumulate. Cistercian numerals are spatial — you divide a fixed space into meaningful zones. This is the same principle behind QR codes, musical notation, and circuit diagrams. The Cistercians arrived at it in the 13th century.
+          </p>
+        </div>
+        <p style="color:var(--text2); font-size:0.92rem;">
+          The system works perfectly for any number that naturally fits in four decimal digits: years (1000–9999), page numbers, inventory counts, calendar dates. The monks used it primarily for page numbers in manuscript books and for year notation in colophons — the closing notes where scribes dated their work.
+        </p>
+      </div>
+      <div>
+        <h3 style="margin-bottom:1rem; font-size:1rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--text2);">Same value, very different cost</h3>
+        <div class="compare-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Value</th>
+                <th>Roman numerals</th>
+                <th>Cistercian</th>
+              </tr>
+            </thead>
+            <tbody id="compare-body"></tbody>
+          </table>
+        </div>
+        <p style="font-size:0.8rem; color:var(--text3); margin-top:0.8rem;">
+          Each Cistercian glyph is always one symbol. Click on any glyph to explore it in the explorer below.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── HOW IT WORKS ──────────────────────────────────────────────────────── -->
+<section id="howto" class="section section--alt">
+  <div class="container">
+    <span class="section-label">The system</span>
+    <h2>Four quadrants. Ten strokes. One glyph.</h2>
+    <p style="max-width:640px; color:var(--text2); margin-bottom:2.5rem;">
+      Every Cistercian numeral shares a single vertical <em>stem</em>. The stem is divided into four spatial quadrants. Each quadrant encodes one decimal digit (0–9) using a small vocabulary of line strokes. The quadrant determines the place value.
+    </p>
+
+    <div class="builder">
+      <div>
+        <p style="color:var(--text2); font-size:0.92rem; margin-bottom:1.2rem;">
+          The diagram below shows which quadrant holds which place value. Drag the sliders to compose any number and watch the glyph build up quadrant by quadrant.
+        </p>
+
+        <div class="quadrant-diagram" id="qdg">
+          <div class="ql" id="ql-tens">← Tens</div>
+          <div class="ql" id="ql-units">Units →</div>
+          <div class="ql" id="ql-thousands">← Thousands</div>
+          <div class="ql" id="ql-hundreds">Hundreds →</div>
+        </div>
+
+        <div class="digit-controls">
+          <div class="digit-row">
+            <span class="d-label">Thousands</span>
+            <input type="range" min="0" max="9" value="1" id="sl-k">
+            <span class="d-val" id="vl-k">1</span>
+          </div>
+          <div class="digit-row">
+            <span class="d-label">Hundreds</span>
+            <input type="range" min="0" max="9" value="9" id="sl-h">
+            <span class="d-val" id="vl-h">9</span>
+          </div>
+          <div class="digit-row">
+            <span class="d-label">Tens</span>
+            <input type="range" min="0" max="9" value="6" id="sl-t">
+            <span class="d-val" id="vl-t">6</span>
+          </div>
+          <div class="digit-row">
+            <span class="d-label">Units</span>
+            <input type="range" min="0" max="9" value="9" id="sl-u">
+            <span class="d-val" id="vl-u">9</span>
+          </div>
+        </div>
+
+        <hr>
+
+        <h3 style="margin-bottom:1rem; font-size:1rem;">The digit vocabulary</h3>
+        <p style="color:var(--text2); font-size:0.9rem; margin-bottom:0;">
+          Digits 1–9 are drawn with up to two line strokes per quadrant. Zero contributes nothing — the quadrant stays empty. The ten possible digit shapes (0–9) are the same in every quadrant; only the position and orientation change.
+        </p>
+        <ul style="color:var(--text2); font-size:0.9rem; margin:1rem 0 0 1.2rem; line-height:1.8;">
+          <li><strong style="color:var(--text);">1</strong> — horizontal at the near edge of the quadrant</li>
+          <li><strong style="color:var(--text);">2</strong> — horizontal at the far edge (equator)</li>
+          <li><strong style="color:var(--text);">3</strong> — diagonal, corner to corner</li>
+          <li><strong style="color:var(--text);">4</strong> — reverse diagonal, back to stem</li>
+          <li><strong style="color:var(--text);">5</strong> — 1 + 4 combined</li>
+          <li><strong style="color:var(--text);">6</strong> — vertical on the outer edge</li>
+          <li><strong style="color:var(--text);">7</strong> — 6 + 1</li>
+          <li><strong style="color:var(--text);">8</strong> — 6 + 2</li>
+          <li><strong style="color:var(--text);">9</strong> — 6 + 3</li>
+        </ul>
+      </div>
+
+      <div class="builder-preview">
+        <canvas id="builder-canvas"></canvas>
+        <div class="builder-num" id="builder-num">1969</div>
+        <div class="builder-hint">← adjust the sliders</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── CLOCK ─────────────────────────────────────────────────────────────── -->
+<section id="clock" class="section">
+  <div class="container">
+    <span class="section-label">Live</span>
+    <h2>A Cistercian clock</h2>
+    <p style="color:var(--text2); max-width:580px; margin-bottom:2.5rem;">
+      Page and date notation were the system's primary purpose. Here is the current time and year, displayed exactly as a Cistercian monk would have written them.
+    </p>
+    <div class="clock-wrap">
+      <div class="clock-unit">
+        <span class="clock-sub">Hours</span>
+        <canvas id="clock-h" class="clock-canvas"></canvas>
+        <span class="clock-num" id="cv-h-val">–</span>
+      </div>
+      <span class="clock-sep">:</span>
+      <div class="clock-unit">
+        <span class="clock-sub">Minutes</span>
+        <canvas id="clock-m" class="clock-canvas"></canvas>
+        <span class="clock-num" id="cv-m-val">–</span>
+      </div>
+      <div class="clock-vr"></div>
+      <div class="clock-unit">
+        <span class="clock-sub">Year</span>
+        <canvas id="clock-y" class="clock-canvas"></canvas>
+        <span class="clock-num" id="cv-y-val">–</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── EXPLORER ──────────────────────────────────────────────────────────── -->
+<section id="explorer" class="section section--alt">
+  <div class="container">
+    <span class="section-label">Interactive</span>
+    <h2>Number explorer</h2>
+
+    <div class="explorer">
+      <div>
+        <div class="exp-input-row">
+          <input type="number" class="big-input" id="exp-input" min="0" max="9999" value="2026">
+          <span class="exp-label">Any number 0 – 9,999</span>
+        </div>
+
+        <h3 style="font-size:1rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--text2); margin-bottom:1rem;">Complete digit reference</h3>
+        <div id="ref-grid"></div>
+
+        <p style="font-size:0.82rem; color:var(--text3); margin-top:1rem;">
+          Click any cell to load it in the viewer →
+        </p>
+      </div>
+
+      <div class="exp-sticky">
+        <canvas id="explorer-canvas"></canvas>
+        <div class="exp-num" id="exp-num-label">2026</div>
+        <div class="exp-hint">click a cell or type a number</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── FOOTER ────────────────────────────────────────────────────────────── -->
+<footer>
+  <div class="container">
+    <p>
+      Documented by historian <strong>David A. King</strong> in <em>The Ciphers of the Monks</em> (Franz Steiner Verlag, 2001).
+    </p>
+    <p style="margin-top:0.5rem;">
+      Popularized by <a href="https://www.youtube.com/@numberphile" target="_blank">Numberphile</a>.
+      System in use c. 1200–1500 across Cistercian monasteries of Europe.
+    </p>
+  </div>
+</footer>
+
+<script>
+// ─── Cistercian rendering engine ─────────────────────────────────────────────
+const STROKES = {
+  0: [],
+  1: [[0,0,1,0]],
+  2: [[0,1,1,1]],
+  3: [[0,0,1,1]],
+  4: [[1,0,0,1]],
+  5: [[0,0,1,0],[1,0,0,1]],
+  6: [[1,0,1,1]],
+  7: [[1,0,1,1],[0,0,1,0]],
+  8: [[1,0,1,1],[0,1,1,1]],
+  9: [[0,0,1,0],[1,0,1,1],[1,1,0,1]]
+};
+
+const GOLD = '#c89b3c';
+
+function drawCistercian(cv, n, opts) {
+  opts = opts || {};
+  const col = opts.col || GOLD;
+  const dpr = window.devicePixelRatio || 1;
+  const W = cv.clientWidth * dpr, H = cv.clientHeight * dpr;
+  if (!W || !H) return;
+  cv.width = W; cv.height = H;
+  const ctx = cv.getContext('2d');
+  ctx.clearRect(0, 0, W, H);
+  n = Math.max(0, Math.min(9999, Math.round(+n) || 0));
+  const u = n % 10, t = ~~(n/10) % 10, h = ~~(n/100) % 10, k = ~~(n/1000) % 10;
+
+  // Match reference repo proportions (100x100 canvas logic):
+  //   stem: 10%..90% vertically. digit area: W*20% wide, H*20% tall.
+  //   Result: top-digit(20%) | gap(40%) | bottom-digit(20%) — never overlap.
+  const cx   = W * 0.5;
+  const sTop = H * 0.1;
+  const sBot = H * 0.9;
+  const DW   = W * 0.2;
+  const DH   = H * 0.2;
+
+  const lw = opts.lw || Math.max(1.5, Math.min(W, H) * 0.028);
+  ctx.strokeStyle = col;
+  ctx.lineWidth   = lw * dpr;
+  ctx.lineCap = ctx.lineJoin = 'round';
+
+  ctx.beginPath(); ctx.moveTo(cx, sTop); ctx.lineTo(cx, sBot); ctx.stroke();
+
+  function seg(d, ox, oy, dx, dy) {
+    if (!d) return;
+    ctx.beginPath();
+    STROKES[d].forEach(([x1,y1,x2,y2]) => {
+      ctx.moveTo(ox + x1*dx, oy + y1*dy);
+      ctx.lineTo(ox + x2*dx, oy + y2*dy);
+    });
+    ctx.stroke();
+  }
+
+  seg(u, cx, sTop, +DW, +DH);
+  seg(t, cx, sTop, -DW, +DH);
+  seg(h, cx, sBot, +DW, -DH);
+  seg(k, cx, sBot, -DW, -DH);
+}
+
+// ─── Roman numeral conversion ─────────────────────────────────────────────────
+function toRoman(n) {
+  if (!n) return 'N';
+  const v = [1000,900,500,400,100,90,50,40,10,9,5,4,1];
+  const s = ['M','CM','D','CD','C','XC','L','XL','X','IX','V','IV','I'];
+  let r = '';
+  v.forEach((val, i) => { while (n >= val) { r += s[i]; n -= val; } });
+  return r;
+}
+
+// ─── Hero animation ───────────────────────────────────────────────────────────
+const HERO_NUMS = [1, 33, 99, 365, 999, 1066, 1215, 1348, 1492, 1618, 1789, 1969, 2026, 9999];
+let heroIdx = 0;
+const heroCV  = document.getElementById('hero-canvas');
+const heroLbl = document.getElementById('hero-label');
+
+function tickHero() {
+  const n = HERO_NUMS[heroIdx % HERO_NUMS.length];
+  drawCistercian(heroCV, n, { lw: 3.5, pad: 0.14 });
+  heroLbl.textContent = n.toLocaleString();
+  heroIdx++;
+}
+
+// ─── Clock ────────────────────────────────────────────────────────────────────
+function updateClock() {
+  const now = new Date();
+  const h = now.getHours() % 12 || 12;
+  const m = now.getMinutes();
+  const y = now.getFullYear();
+  drawCistercian(document.getElementById('clock-h'), h, { lw: 3.5 });
+  drawCistercian(document.getElementById('clock-m'), m, { lw: 3.5 });
+  drawCistercian(document.getElementById('clock-y'), y, { lw: 3 });
+  document.getElementById('cv-h-val').textContent = String(h).padStart(2,'0') + ' h';
+  document.getElementById('cv-m-val').textContent = String(m).padStart(2,'0') + ' min';
+  document.getElementById('cv-y-val').textContent = y;
+}
+
+// ─── Builder ──────────────────────────────────────────────────────────────────
+function updateBuilder() {
+  const k = +document.getElementById('sl-k').value;
+  const h = +document.getElementById('sl-h').value;
+  const t = +document.getElementById('sl-t').value;
+  const u = +document.getElementById('sl-u').value;
+  document.getElementById('vl-k').textContent = k;
+  document.getElementById('vl-h').textContent = h;
+  document.getElementById('vl-t').textContent = t;
+  document.getElementById('vl-u').textContent = u;
+  const n = k*1000 + h*100 + t*10 + u;
+  document.getElementById('builder-num').textContent = n.toLocaleString();
+  drawCistercian(document.getElementById('builder-canvas'), n, { lw: 3 });
+  // Quadrant highlights: top-left=tens, top-right=units, bottom-left=thousands, bottom-right=hundreds
+  const map = { 'ql-tens': t, 'ql-units': u, 'ql-thousands': k, 'ql-hundreds': h };
+  Object.entries(map).forEach(([id, val]) => {
+    const el = document.getElementById(id);
+    if (val) { el.classList.add('active'); } else { el.classList.remove('active'); }
+  });
+}
+
+['sl-k','sl-h','sl-t','sl-u'].forEach(id =>
+  document.getElementById(id).addEventListener('input', updateBuilder)
+);
+
+// ─── Explorer ─────────────────────────────────────────────────────────────────
+function setExplorer(n) {
+  n = Math.max(0, Math.min(9999, Math.round(+n) || 0));
+  document.getElementById('exp-input').value = n;
+  document.getElementById('exp-num-label').textContent = n.toLocaleString();
+  drawCistercian(document.getElementById('explorer-canvas'), n, { lw: 3.5 });
+}
+document.getElementById('exp-input').addEventListener('input', e => setExplorer(e.target.value));
+
+// ─── Reference grid ───────────────────────────────────────────────────────────
+function buildRefGrid() {
+  const rows = [
+    { mult: 1,    label: 'Units' },
+    { mult: 10,   label: 'Tens' },
+    { mult: 100,  label: 'Hundreds' },
+    { mult: 1000, label: 'Thousands' }
+  ];
+  const grid = document.getElementById('ref-grid');
+  grid.innerHTML = '';
+
+  // Column header
+  const hdr = document.createElement('div');
+  hdr.style.cssText = 'display:grid;grid-template-columns:80px repeat(9,1fr);gap:5px;margin-bottom:4px;';
+  hdr.innerHTML = '<div></div>' + [1,2,3,4,5,6,7,8,9].map(d =>
+    `<div style="text-align:center;font-size:0.78rem;color:var(--text2);">${d}</div>`
+  ).join('');
+  grid.appendChild(hdr);
+
+  rows.forEach(({ mult, label }) => {
+    const row = document.createElement('div');
+    row.style.cssText = 'display:grid;grid-template-columns:80px repeat(9,1fr);gap:5px;margin-bottom:8px;align-items:center;';
+
+    const lbl = document.createElement('div');
+    lbl.style.cssText = 'font-size:0.75rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--text2);';
+    lbl.textContent = label;
+    row.appendChild(lbl);
+
+    [1,2,3,4,5,6,7,8,9].forEach(d => {
+      const n = d * mult;
+      const cell = document.createElement('div');
+      cell.style.cssText = 'display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;';
+      cell.title = String(n);
+
+      const cv = document.createElement('canvas');
+      cv.style.cssText = 'width:100%;aspect-ratio:3/4;display:block;border-radius:5px;background:var(--bg3);border:1px solid transparent;transition:border-color 0.15s;';
+      cell.appendChild(cv);
+
+      const nl = document.createElement('div');
+      nl.style.cssText = 'font-size:11px;color:var(--text3);';
+      nl.textContent = mult >= 1000 ? d + 'k' : n;
+      cell.appendChild(nl);
+
+      cell.addEventListener('mouseenter', () => cv.style.borderColor = 'var(--gold-d)');
+      cell.addEventListener('mouseleave', () => cv.style.borderColor = 'transparent');
+      cell.addEventListener('click', () => {
+        setExplorer(n);
+        document.getElementById('explorer').scrollIntoView({ behavior: 'smooth' });
+      });
+      row.appendChild(cell);
+      setTimeout(() => drawCistercian(cv, n, { lw: 1.8, pad: 0.12 }), 0);
+    });
+    grid.appendChild(row);
+  });
+}
+
+// ─── Comparison table ─────────────────────────────────────────────────────────
+function buildCompareTable() {
+  const nums = [4, 42, 399, 1066, 1998, 3888];
+  const tbody = document.getElementById('compare-body');
+  tbody.innerHTML = '';
+  nums.forEach(n => {
+    const roman = toRoman(n);
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="td-num">${n.toLocaleString()}</td>
+      <td class="td-rom">${roman}<span class="td-len">(${roman.length} chars)</span></td>
+      <td class="td-cist"><canvas data-n="${n}" style="width:38px;height:50px;display:inline-block;border-radius:4px;cursor:pointer;" title="${n}"></canvas></td>
+    `;
+    tbody.appendChild(tr);
+    const cv = tr.querySelector('canvas');
+    setTimeout(() => {
+      drawCistercian(cv, n, { lw: 2, pad: 0.12 });
+      cv.addEventListener('click', () => {
+        setExplorer(n);
+        document.getElementById('explorer').scrollIntoView({ behavior: 'smooth' });
+      });
+    }, 0);
+  });
+}
+
+// ─── Resize handler ───────────────────────────────────────────────────────────
+function redrawAll() {
+  updateClock();
+  updateBuilder();
+  buildRefGrid();
+  buildCompareTable();
+  const n = +document.getElementById('exp-input').value || 2026;
+  setExplorer(n);
+  tickHero();
+}
+
+// ─── Init ─────────────────────────────────────────────────────────────────────
+window.addEventListener('load', () => {
+  tickHero();
+  setInterval(tickHero, 2000);
+
+  updateClock();
+  updateBuilder();
+  buildRefGrid();
+  buildCompareTable();
+  setExplorer(2026);
+
+  // Sync clock to minute boundary
+  const now = new Date();
+  setTimeout(() => {
+    updateClock();
+    setInterval(updateClock, 60000);
+  }, (60 - now.getSeconds()) * 1000);
+});
+
+let resizeTimer;
+window.addEventListener('resize', () => {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(redrawAll, 120);
+});
+</script>
+</body>
+</html>
