@@ -47,12 +47,13 @@ The system was largely forgotten until historian **David A. King** spent a caree
 - **Interactive builder** — compose a number digit by digit and watch each quadrant light up
 - **Full reference table** — all 36 digit glyphs, clickable
 - **Historical context** — the monks, the vow of silence, the information theory angle
+- **The Anatomy of the Primes** (`primes.html`) — all 1,229 primes below 10,000 as a playable score (Web Audio), a "ghost" overlay of every glyph, a searchable matrix, and density charts. Every view can be compared against *all integers 1–9,999*. That comparison shows the prime signal lives almost entirely in the units quadrant (primes end in 1, 3, 7, 9), while the big wave in stroke density comes from the notation itself.
 
 ---
 
 ## Technical notes
 
-Single HTML file. No dependencies, no build step, no framework. Just a canvas renderer and some carefully placed strokes — which feels appropriate for a project about medieval monks who also believed in doing things simply.
+Two HTML files (`index.html`, `primes.html`). No dependencies, no build step, no framework. Just a canvas renderer and some carefully placed strokes — which feels appropriate for a project about medieval monks who also believed in doing things simply.
 
 The rendering engine mirrors the proportions of the historical glyphs:
 
